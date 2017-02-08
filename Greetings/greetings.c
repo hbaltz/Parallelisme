@@ -2,7 +2,8 @@
 #include <mpi.h>
 #include <time.h> /* chronometrage */
 #include <string.h> 
-#include <sys/time.h>
+#include <sys/time.h> /* chronometrage */
+#include <unistd.h> /* Sleep */
 
 double my_gettimeofday(){
   struct timeval tmp_time;
@@ -13,8 +14,8 @@ double my_gettimeofday(){
 int main(int argc, char *argv[])
 {
   const int ROOT = 0;
+  char msg [20];
   int my_rank;
-  int recv_rank;
   int numtasks;
   int p;
   /* Chronometrage */
@@ -31,12 +32,14 @@ int main(int argc, char *argv[])
   MPI_Comm_size(MPI_COMM_WORLD, &numtasks); /* obtains the total number of MPI processes */
 
   if (my_rank != ROOT ) {
-    MPI_Send(&my_rank, 1, MPI_INT, ROOT, 0, MPI_COMM_WORLD);
+    strcpy(msg,"Hello World !");
+    //sleep(1); // en s
+    MPI_Send(msg, 20, MPI_CHAR, ROOT, 0, MPI_COMM_WORLD);
   }
   else 
     for ( p = 1; p < numtasks; p++ ) {
-      MPI_Recv(&recv_rank, 1, MPI_INT, p, 0, MPI_COMM_WORLD, &status);
-      printf("Greetings from Process %d\n", recv_rank);
+      MPI_Recv(msg, 20, MPI_CHAR, p, 0, MPI_COMM_WORLD, &status);
+      printf("J'ai reçu : %s\n", msg);
   }
 
   MPI_Finalize();        /*Finalizes MPI calls */
