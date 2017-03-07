@@ -129,13 +129,15 @@ Voir code joint [mandel_statique.c](src/mandel_statique.c)
 mpicc -o mandel_statique mandel_statique.c -lm -std=c99
 ```
 
-### Analyse des performances
+#### Analyse des performances
 
-#### Question 4
+##### Question 4
 
-##### 4.1
+###### 4.1
 
-
+```
+mpiexec ./mandel_statique 800 800 -0.736 -0.184 -0.735 -0.183 500 -np 4 -H piensg011,piensg017,piensg005,piensg015
+```
 
 
 
