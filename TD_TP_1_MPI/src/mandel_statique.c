@@ -1,4 +1,9 @@
 #define MAITRE 0 // Définition rank = 0 => master
+#define TAG_IM 42
+
+#ifndef M_PI
+    #define M_PI 3.14159265358979323846
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -230,7 +235,6 @@ int main(int argc, char *argv[]) {
   /* debut du chronometrage */
   debut = my_gettimeofday();
 
-
   if( argc == 1) fprintf( stderr, "%s\n", info);
   
   /* Valeurs par defaut de la fractale */
@@ -253,7 +257,7 @@ int main(int argc, char *argv[]) {
   yinc = (ymax - ymin) / (h-1);
 
   /**
-  *** Début paralélisation
+  *** Début parallelisation
   **/
   int rank; // rang du processeur
   int p; // nombre processeur
@@ -266,7 +270,7 @@ int main(int argc, char *argv[]) {
 
   if(rank == MAITRE){
 
-    /* Affichage parametres pour verificatrion */
+    /* Affichage parametres pour verification */
     fprintf( stderr, "Rang: %d\n", rank);
     fprintf( stderr, "Domaine: {[%lg,%lg]x[%lg,%lg]}\n", xmin, ymin, xmax, ymax);
     fprintf( stderr, "Increment : %lg %lg\n", xinc, yinc);
@@ -294,16 +298,16 @@ int main(int argc, char *argv[]) {
       y += yinc; 
     }
 
-    /* Réception donnees ovrier */
+    /* Reception donnees ouvrier */
     MPI_Status status;
 
     for (int i = 0; i < p; i++) {
       if (i != MAITRE) {
-        MPI_Probe(MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status);
-        int s = status.MPI_SOURCE; // rank de la source
+        MPI_Probe(MPI_ANY_SOURCE, TAG_IM, MPI_COMM_WORLD, &status);
+        int rank_src = status.MPI_SOURCE; // rank de la source
 
-        if (s != MAITRE) {
-          MPI_Recv(ima + s * h_loc * w * sizeof(unsigned char), h_loc * w, MPI_CHAR, s, TAG_DATA, MPI_COMM_WORLD, &status);
+        if (rank_src != MAITRE) {
+          MPI_Recv(ima + rank_src * h_local * w * sizeof(unsigned char), h_local * w, MPI_CHAR, rank_src, TAG_IM, MPI_COMM_WORLD, &status);
         }
       }
     }
@@ -317,7 +321,6 @@ int main(int argc, char *argv[]) {
     sauver_rasterfile( "mandel.ras", w, h, ima);
 
   }else{
-
     /* Affichage parametres pour verificatrion */
     fprintf( stderr, "Rang: %d\n", rank);
 
@@ -342,13 +345,15 @@ int main(int argc, char *argv[]) {
     }
 
     // Envoie au master
-    MPI_Send(ima_loc, h_local * w, MPI_CHAR, MAITRE, 0, MPI_COMM_WORLD);
+    MPI_Send(ima_loc, h_local * w, MPI_CHAR, MAITRE, TAG_IM, MPI_COMM_WORLD);
 
     /* fin du chronometrage */
     fin = my_gettimeofday();
     fprintf( stderr, "Rang %d | Temps total de calcul : %g sec\n", rank,
        fin - debut);
   }
+
+  MPI_Finalize();
 
   return 0;
 }
