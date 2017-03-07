@@ -62,32 +62,25 @@ Commentaires : changement de profondeur (nombre maximale d'iteration) par rappor
 
 ## Calcul parallèle
 
-### Question 3
+### Statique
 
-#### 3.1
+#### Question 3
+
+##### 3.1
 
 La fonction xy2color() dans le code, nécéssite de connnaître la position en 2D (en x et en y) du pixel précédent. Cette fonction ne peut pas être parallèlisable, c'est cela qui rend difficile la parallélisation.
 
 Le calcul aux différentes profondeurs (fonction xy2color()) n'est pas parallèlisable, puisque la valeur d'un pixel à la profondeur n+1 est une fonction complexe de la valeur de ce pixel à la profondeur n (la valeur à la profondeur n+1 écrase en mémoire celle à la profondeur n). 
 
-En revanche, chaque pixel de l'image subit le même traitement (les deux boucles for imbirquées) qui ne dépend pas de la valeur d'autres pixles => partie parallélisable.
+En revanche, chaque pixel de l'image subit le même traitement (les deux boucles for imbirquées) qui ne dépend pas de la valeur d'autres pixels => partie parallélisable.
 
-#### 3.2
-
-##### Statique
+##### 3.2
 
 * Découpage de l'image
 * Le maître alloue les sous-parties de l'image aux ouvriers
 * Chaque ouvrier traîte sa partie puis l'envoie au maître qui réassemble le tout (le maître aussi traite une partie de l'image)
 
-##### Dynamique
-
-* Répartition du travail restant entre les différents ouvriers
-* Le maître répartit le travail au sein des ouvriers
-
-#### 3.3
-
-##### Statique
+##### 3.3
 
 h_loc = H/P
 P = nombre de processeur
@@ -102,10 +95,10 @@ Allocation mémoire :
 ###### Algo 1 
 
 Données :
-  H : hauteur totale de l'image
-  W : longueur totale de l'image
-  rank : rang du processeur
-  h_local : hauteur d'un bloc
+  H : hauteur totale de l'image  
+  W : longueur totale de l'image  
+  rank : rang du processeur  
+  h_local : hauteur d'un bloc  
 
 ```
 Si rank == MAITRE alors
@@ -129,9 +122,26 @@ Si rank == MAITRE alors
   Sauvegarde de l'image
 ```
 
-#### 3.4
+##### 3.4
 
 Voir code joint [mandel_statique.c](src/mandel_statique.c)
 ```
 mpicc -o mandel_statique mandel_statique.c -lm -std=c99
 ```
+
+### Analyse des performances
+
+#### Question 4
+
+##### 4.1
+
+
+
+
+
+### Dynamique
+
+##### 3.2
+
+* Répartition du travail restant entre les différents ouvriers
+* Le maître répartit le travail au sein des ouvriers
