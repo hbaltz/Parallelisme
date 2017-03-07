@@ -119,6 +119,19 @@ Sinon
 	Envoie au maitre du bloc traité  
 ```
 
+Recomposition de l'image à partir des différentes parties 
+
+```
+Si rank == MAITRE alors
+  Réception des blocs traités par les ouvriers
+  Ajout à l'image globale de ces parties
+  Affichage du chronomètre
+  Sauvegarde de l'image
+```
+
 #### 3.4
 
 Voir code joint [mandel_statique.c](src/mandel_statique.c)
+```
+mpicc -o mandel_statique mandel_statique.c -lm -std=c99
+```
