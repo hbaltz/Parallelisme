@@ -128,8 +128,8 @@ void sauver_rasterfile( char *nom, int largeur, int hauteur, unsigned char *p) {
   unsigned char o;
 
   if ( (fd=fopen(nom, "w")) == NULL ) {
-	printf("erreur dans la creation du fichier %s \n",nom);
-	exit(1);
+  	printf("erreur dans la creation du fichier %s \n",nom);
+  	exit(1);
   }
 
   file.ras_magic  = swap(RAS_MAGIC);	
