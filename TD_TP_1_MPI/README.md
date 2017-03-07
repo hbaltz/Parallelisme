@@ -37,7 +37,7 @@ Temps total de calcul : 5.49344 sec
 Temps total de calcul : 0.449191 sec
 ```
 
-![Resultat calcul changement xmin ymin xmax ymax](mandel_800_800_0.35_0.355_0.353_0.358_200.ras)
+![Resultat calcul changement xmin ymin xmax ymax](img/mandel_800_800_0.35_0.355_0.353_0.358_200.ras)
 
 Commentaires : changement du domaine a calculer dans le plan complexe. On remarque un déplacement de la zone de calcul
 
@@ -46,7 +46,7 @@ Commentaires : changement du domaine a calculer dans le plan complexe. On remarq
 Temps total de calcul : 1.48156 sec
 ```
 
-![Resultat calcul changement prof](mandel_800_800_-0.736_-0.184_-0.735_-0.183_500.ras)
+![Resultat calcul changement prof](img/mandel_800_800_-0.736_-0.184_-0.735_-0.183_500.ras)
 
 Commentaires : changement du domaine a calculer dans le plan complexe et profondeur
 
@@ -56,7 +56,7 @@ Commentaires : changement du domaine a calculer dans le plan complexe et profond
 Temps total de calcul : 1.24605 sec
 ```
 
-![Resultat calcul changement prof](mandel_800_800_-0.736_-0.184_-0.735_-0.183_300.ras)
+![Resultat calcul changement prof](img/mandel_800_800_-0.736_-0.184_-0.735_-0.183_300.ras)
 
 Commentaires : changement de profondeur (nombre maximale d'iteration) par rapport à l'image précédente, on remarque un nombre de formes plus important.
 
@@ -66,4 +66,59 @@ Commentaires : changement de profondeur (nombre maximale d'iteration) par rappor
 
 #### 3.1
 
-Le calcul de l'ensemble de Mandelbrot nécéssite de connnaître la position en 2D (en x et en y) simultanément, c'est cela qui rend difficile la parallélisation.
+La fonction xy2color() dans le code, nécéssite de connnaître la position en 2D (en x et en y) du pixel précédent. Cette fonction ne peut pas être parallèlisable, c'est cela qui rend difficile la parallélisation.
+
+Le calcul aux différentes profondeurs (fonction xy2color()) n'est pas parallèlisable, puisque la valeur d'un pixel à la profondeur n+1 est une fonction complexe de la valeur de ce pixel à la profondeur n (la valeur à la profondeur n+1 écrase en mémoire celle à la profondeur n). 
+
+En revanche, chaque pixel de l'image subit le même traitement (les deux boucles for imbirquées) qui ne dépend pas de la valeur d'autres pixles => partie parallélisable.
+
+#### 3.2
+
+##### Statique
+
+* Découpage de l'image
+* Le maître alloue les sous-parties de l'image aux ouvriers
+* Chaque ouvrier traîte sa partie puis l'envoie au maître qui réassemble le tout (le maître aussi traite une partie de l'image)
+
+##### Dynamique
+
+* Répartition du travail restant entre les différents ouvriers
+* Le maître répartit le travail au sein des ouvriers
+
+#### 3.3
+
+##### Statique
+
+h_loc = H/P
+P = nombre de processeur
+
+Ymin_loc(rank) = Ymin + h_loc*rank*Yinc
+
+Allocation mémoire :
+
+  * Maître : h ∗ w ∗ sizeof(char)
+  * Ouvrier : h_loc ∗ w ∗ sizeof(char)
+
+###### Algo 1 
+
+Données :
+  H : hauteur totale de l'image
+  W : longueur totale de l'image
+  rank : rang du processeur
+  h_local : hauteur d'un bloc
+
+```
+Si rank == MAITRE alors
+	Allocation dynamique memoire de l'image globale  
+	Test de l'allocation dynamique  
+	Traitement d'un bloc point par point  
+	Recomposition de l'image à partir des différentes parties  
+Sinon  
+	Allocation mémoire locale  
+	Traitement d'un bloc point par point  
+	Envoie au maitre du bloc traité  
+```
+
+#### 3.4
+
+Voir code joint [mandel_statique.c](src/mandel_statique.c)
