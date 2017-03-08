@@ -276,7 +276,10 @@ int main(int argc, char *argv[]) {
 
   int nBloc = h / nlin; // Nombre de blocs
   int num_bloc = 0; // Numero bloc
-  int num_bloc_rec = 0; // Numero bloc recu 
+  int num_bloc_rec = 0; // Numero bloc recu
+  int nBloc_recu = 0; // nombre bloc recu 
+
+  int stop = -1;
 
   MPI_Status status;
 
@@ -320,13 +323,19 @@ int main(int argc, char *argv[]) {
         // On reçoit le bloc traité
         MPI_Recv(ima + num_bloc_rec*nlin*w*sizeof(unsigned char), nlin*w, MPI_CHAR, rank_src, TAG_IM, MPI_COMM_WORLD, &status);
         
+        nBloc_recu ++;
+
         // Test fin de calcul de l'image
         if(num_bloc >= nBloc){
-          finCalc = -1;
-          MPI_Send(&finCalc, 1, MPI_INT, rank_src, TAG_NUM_BLOC, MPI_COMM_WORLD);
+          MPI_Send(&stop, 1, MPI_INT, rank_src, TAG_NUM_BLOC, MPI_COMM_WORLD);
         }else{
           MPI_Send(&num_bloc, 1, MPI_INT, rank_src, TAG_NUM_BLOC, MPI_COMM_WORLD);
           num_bloc+=1;
+        }
+
+        // Si tous recu on se stope
+        if(nBloc_recu == nBloc){
+          finCalc = -1;
         }
       }
     }
@@ -356,7 +365,7 @@ int main(int argc, char *argv[]) {
       MPI_Recv(&num_bloc, 1, MPI_INT, MAITRE, TAG_NUM_BLOC,MPI_COMM_WORLD, &status);
 
       if(num_bloc == -1){
-        break;
+        finCalc = -1;
       }else{
         pima_loc = ima_loc;
 
