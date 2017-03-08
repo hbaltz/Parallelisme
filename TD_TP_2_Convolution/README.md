@@ -48,7 +48,20 @@ Dans la fonction convolution(), on prépare un tampon intermédiaire pour ne pas
 
 ## Question 2
 
-La fonction convolution() qui dépend uniquement du x,y du pixel peut être paralléliser, cependat l'enchînement des convolutions elle ne pas l'être, car pour effectuer la convolution n, nous avons besoin de l'ensemble de l'image qui a subit la convolution n-1
+La fonction convolution() qui dépend uniquement du x,y du pixel peut être paralléliser, cependant l'enchaînement des convolutions elle ne pas l'être, car pour effectuer la convolution n, nous avons besoin de l'ensemble de l'image qui a subit la convolution n-1.
 
 ## Question 3
 
+9 multplications et 8 additions : Complexité de o(9+8)~o(7)~o(1), donc une complexité constante. Dans ce cas une charge statique est plus efficace car le maître peux effectuer des calculs.
+
+## Question 4
+
+Le découpage naturel est de prendre des formes géométriques constantes tels que des carrés, rectangles, triangles. Par exemple on peux travailler par ligne ou par colonne de plusieurs pixels.
+
+## Question 5
+
+Lignes/colonnes non traitées entre blocs, nécéssite une communication entre les ouvriers (entre les blocs voisins)
+
+Alternative : image origine à tous les ouvriers, peut-être moins efficace si l'image est grosse
+
+## Question 6
