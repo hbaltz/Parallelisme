@@ -181,3 +181,27 @@ Voir code joint [mandel_dynamique.c](src/mandel_dynamique.c)
 ```
 mpicc -o mandel_dynamique mandel_dynamique.c -lm -std=c99
 ```
+
+#### Analyse des performances
+
+##### Question 4
+
+###### 4.1
+
+Test effecuée en faisaint varier le nombre de processus à l'aide commande suivante sur pi configuré comme expliqué dans [configuration pi](config_pi.md)
+
+```
+mpiexec -n 4 ./mandel_dynamique
+```
+
+TODO : courbes + tableaux
+
+### Comparaison statique et dynamique
+
+TODO : courbes + tableaux
+
+## Amélioration
+
+### 5.1
+
+* Réduire le temps non-actif des ouvriers (entre l'envoie la réception des données et la vérification qu'il n'y a pas de travail qu'il reste)
