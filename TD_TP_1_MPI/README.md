@@ -135,11 +135,13 @@ mpicc -o mandel_statique mandel_statique.c -lm -std=c99
 
 ###### 4.1
 
+Test effecuée en faisaint varier le nombre de processus à l'aide commande suivante sur pi configuré comme expliqué dans [configuration pi](config_pi.md)
+
 ```
-mpiexec ./mandel_statique 800 800 -0.736 -0.184 -0.735 -0.183 500 -np 4 -H piensg011,piensg017,piensg005,piensg015
+mpiexec -n 4 ./mandel_statique
 ```
 
-
+TODO : courbes + tableaux
 
 ### Dynamique
 
