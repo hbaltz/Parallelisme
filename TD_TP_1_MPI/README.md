@@ -148,4 +148,29 @@ TODO : courbes + tableaux
 ##### 3.2
 
 * Répartition du travail restant entre les différents ouvriers
-* Le maître répartit le travail au sein des ouvriers
+* Le maître répartit le travail au sein des ouvriers (il n'effectue aucun calcul)
+* Le maître reçoit les blocs traités par les ouvriers, si besion il leur envoie un nouveau bloc à traiter
+* Le nombre de blocs est un argument du programme caractérisé par le nombre de lignes à traiter
+* A chaque fois qu'un ouvrirer finit de traiter un bloc, il l'envoie au maître qui le met au bon endroit
+
+##### 3.3
+
+Algo maître
+
+```
+Allocation dynamique de l'image globale
+Test de l'allocation dynamique
+Pour i de 0 à nb_proc faire
+  Si i != rank_maitre
+    // On envoie au esclave de rang i num_bloc
+
+    // On incrémente num_bloc
+
+  Pour i de 0 à h/nb_lignes faire
+    // On reçoit le numéro de bloc traité par l'ouvrier
+    // On détermine le rang de l'émetteur
+    // On reçoit le bloc traité
+    // Test fin de calcul de l'image
+      // S'il reste des calcul à faire on envoie un numéro de bloc à calculer à l'ouvrier qui vient de finir son calcul
+      // Sinon on envoie un message indiquant la fin du travail
+```

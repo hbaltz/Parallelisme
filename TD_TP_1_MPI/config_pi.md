@@ -1,4 +1,4 @@
-# Configuration es rapsberry pi
+# Configuration des rapsberry pi
 
 Inspireé par [lleksah](https://lleksah.wordpress.com/2016/04/11/configuring-a-raspberry-cluster-with-mpi/)
 
