@@ -174,3 +174,10 @@ Pour i de 0 à nb_proc faire
       // S'il reste des calcul à faire on envoie un numéro de bloc à calculer à l'ouvrier qui vient de finir son calcul
       // Sinon on envoie un message indiquant la fin du travail
 ```
+
+##### 3.4
+
+Voir code joint [mandel_dynamique.c](src/mandel_dynamique.c)
+```
+mpicc -o mandel_dynamique mandel_dynamique.c -lm -std=c99
+```
