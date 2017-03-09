@@ -1,4 +1,5 @@
 #define MAITRE 0 // Definition rank = 0 => master
+#define TAG_LIN 42
 
 #ifndef M_PI
     #define M_PI 3.14159265358979323846
@@ -383,24 +384,48 @@ int main(int argc, char *argv[]) {
 
   //fprintf( stderr, "Taille image totale : %d \n",(params[0]*params[1]));
   //fprintf( stderr, "Taille image recue : %d \n",(int)(h_loc*params[1]*sizeof(unsigned char)));
-          
-  /*
+
   // La convolution a proprement parler 
+  MPI_Status status_recp_der, status_recp_pre;
+
   for(i=0 ; i < nbiter ; i++){
-    convolution( filtre, r.data, params[0], params[1]);
-  } // for i 
+    if(rank > 0){ // Envoie premiere ligne, reception derniere ligne
+      MPI_Send(ima + params[1],params[1],MPI_CHAR,rank-1,TAG_LIN,MPI_COMM_WORLD);
+      MPI_Recv(ima, params[1],MPI_CHAR,rank-1,TAG_LIN,MPI_COMM_WORLD,&status_recp_der);
+    }
+
+    if(rank < p-1){ //Reception premiere ligne, envoie derniere ligne
+      MPI_Recv(ima + params[1]*(h_loc -1),params[1],MPI_CHAR,rank+1,TAG_LIN,MPI_COMM_WORLD,&status_recp_pre);
+      MPI_Send(ima + params[1]*(h_loc -2),params[1],MPI_CHAR,rank+1,TAG_LIN,MPI_COMM_WORLD);
+    }
+
+    convolution(filtre, ima, h_loc, params[1]);
+    fprintf( stderr, "Rang %d, nbiter=%d finie\n", rank, nbiter);
+  }
+
+  MPI_Gather( 
+    ima + (rank > 0 ? params[1] : 0), //sbuf
+    params[1] * h_p, // scount
+    MPI_CHAR, // sdtype
+    r.data, // rbuf
+    params[1] * h_p, // rcount
+    MPI_CHAR, // rdtype
+    MAITRE, // root
+    MPI_COMM_WORLD // comm
+  );
 
   // fin du chronometrage 
   fin = my_gettimeofday();
-  printf("Temps total de calcul : %g seconde(s) \n", fin - debut);
+  fprintf( stderr, "Rang %d | Temps total de calcul : %g sec\n", rank,
+       fin - debut);
     
   // Sauvegarde du fichier Raster 
-  { 
+  if (rank == MAITRE) { 
     char nom_sortie[100] = "";
     sprintf(nom_sortie, "post-convolution2_filtre%d_nbIter%d.ras", filtre, nbiter);
     sauve_rasterfile(nom_sortie, &r);
   }
-  */
+  
 
   MPI_Finalize();
 
