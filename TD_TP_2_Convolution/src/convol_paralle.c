@@ -260,43 +260,25 @@ int convolution( filtre_t choix, unsigned char tab[],int nbl,int nbc) {
     printf("Erreur dans l'allocation de tmp dans convolution \n");
     return 1;
   }
-
-   /**
-  *** Début parallelisation
-  **/
-  int rank; // rang du processeur
-  int p; // nombre processeur
-
-  MPI_Init(&argc, &argv); /* starts MPI */
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank); /* get current process id */
-  MPI_Comm_size(MPI_COMM_WORLD, &p);
-
-  int h_local = h/p;
-
-  if(rank == MAITRE){
   
-    /* on laisse tomber les bords */
-    for(i=1 ; i<nbl-1 ; i++){
-      for(j=1 ; j<nbc-1 ; j++){
-        tmp[i*nbc+j] = filtre(
-  			    choix,
-  			    tab[(i+1)*nbc+j-1],tab[(i+1)*nbc+j],tab[(i+1)*nbc+j+1],
-  			    tab[(i  )*nbc+j-1],tab[(i)*nbc+j],tab[(i)*nbc+j+1],
-  			    tab[(i-1)*nbc+j-1],tab[(i-1)*nbc+j],tab[(i-1)*nbc+j+1]);
-      } /* for j */
-    } /* for i */
-    
-    /* Recopie de l'image apres traitement dans l'image initiale,
-     * On remarquera que la premiere, la derniere ligne, la premiere
-     * et la derniere colonne ne sont pas copiées (ce qui force a faire
-     * la copie ligne par ligne). */
-    for( i=1; i<nbl-1; i++){
-      memcpy( tab+nbc*i+1, tmp+nbc*i+1, (nbc-2)*sizeof(unsigned char));
-    } /* for i */
-        
-  }else{
-
-  }
+  /* on laisse tomber les bords */
+  for(i=1 ; i<nbl-1 ; i++){
+    for(j=1 ; j<nbc-1 ; j++){
+      tmp[i*nbc+j] = filtre(
+          choix,
+          tab[(i+1)*nbc+j-1],tab[(i+1)*nbc+j],tab[(i+1)*nbc+j+1],
+          tab[(i  )*nbc+j-1],tab[(i)*nbc+j],tab[(i)*nbc+j+1],
+          tab[(i-1)*nbc+j-1],tab[(i-1)*nbc+j],tab[(i-1)*nbc+j+1]);
+    } /* for j */
+  } /* for i */
+  
+  /* Recopie de l'image apres traitement dans l'image initiale,
+   * On remarquera que la premiere, la derniere ligne, la premiere
+   * et la derniere colonne ne sont pas copiées (ce qui force a faire
+   * la copie ligne par ligne). */
+  for( i=1; i<nbl-1; i++){
+    memcpy( tab+nbc*i+1, tmp+nbc*i+1, (nbc-2)*sizeof(unsigned char));
+  } /* for i */
   
   /* Liberation memoire du tampon intermediaire : */
   free(tmp);   
@@ -317,7 +299,8 @@ int main(int argc, char *argv[]) {
 
   /* Variables se rapportant a l'image elle-meme */
   Raster r;
-  int    w, h;	/* nombre de lignes et de colonnes de l'image */
+  //int    w, h;	/* nombre de lignes et de colonnes de l'image */
+  int params[2]; // 0=h 1=w
 
   /* Variables liees au traitement de l'image */
   int 	 filtre;		/* numero du filtre */
@@ -338,30 +321,88 @@ int main(int argc, char *argv[]) {
   /* Saisie des paramètres */
   filtre = atoi(argv[2]);
   nbiter = atoi(argv[3]);
-        
-  /* Lecture du fichier Raster */
-  lire_rasterfile( argv[1], &r);
-  h = r.file.ras_height;
-  w = r.file.ras_width;
-    
+
   /* debut du chronometrage */
-  debut = my_gettimeofday();            
+  debut = my_gettimeofday();  
 
-  /* La convolution a proprement parler */
+  /**
+  *** Debut parallelisation
+  **/
+  int rank; // rang du processeur
+  int p; // nombre processeur
+
+  int h_p;
+  int h_loc;
+
+  /* Image resultat */
+  unsigned char *ima, *ima_loc;
+
+  MPI_Init(&argc, &argv); /* starts MPI */
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank); /* get current process id */
+  MPI_Comm_size(MPI_COMM_WORLD, &p);
+
+  if(rank == MAITRE){
+    /* Lecture du fichier Raster */
+    lire_rasterfile( argv[1], &r);
+    params[0] = r.file.ras_height;
+    params[1] = r.file.ras_width;
+  }
+
+  // Envoie parametres aux ouvriers
+  MPI_Bcast(&params,2,MPI_INT,MAITRE,MPI_COMM_WORLD);
+
+  // Calcul de h_loc
+  h_p = params[0]/p;
+  h_loc = h_p + (rank > 0 ? 1:0) + (rank < p-1 ? 1:0);
+
+  if(rank == MAITRE){
+    ima = r.data;
+  }else{
+    //fprintf( stderr, "H loc : %d \n",h_loc);
+
+    // Allocation dynamique de chaque bloc local
+    ima = malloc(h_loc*params[1]*sizeof(unsigned char));
+    // Test de l'allocation dynamique
+    if( ima == NULL) {
+      fprintf( stderr, "Erreur allocation mémoire du tableau \n");
+      return 0;
+    }
+  }
+
+  // Envoi des blocs d'images aux processus
+  MPI_Scatter(
+    r.data, // sbuf
+    params[1] * h_p, // scount
+    MPI_CHAR, // sdtype
+    ima + (rank > 0 ? params[1] : 0), //rbuf
+    params[1] * h_p, // rcount
+    MPI_CHAR, // rdtype
+    MAITRE, // root
+    MPI_COMM_WORLD // comm
+  );
+
+  //fprintf( stderr, "Taille image totale : %d \n",(params[0]*params[1]));
+  //fprintf( stderr, "Taille image recue : %d \n",(int)(h_loc*params[1]*sizeof(unsigned char)));
+          
+  /*
+  // La convolution a proprement parler 
   for(i=0 ; i < nbiter ; i++){
-    convolution( filtre, r.data, h, w);
-  } /* for i */
+    convolution( filtre, r.data, params[0], params[1]);
+  } // for i 
 
-  /* fin du chronometrage */
+  // fin du chronometrage 
   fin = my_gettimeofday();
   printf("Temps total de calcul : %g seconde(s) \n", fin - debut);
     
-    /* Sauvegarde du fichier Raster */
+  // Sauvegarde du fichier Raster 
   { 
     char nom_sortie[100] = "";
     sprintf(nom_sortie, "post-convolution2_filtre%d_nbIter%d.ras", filtre, nbiter);
     sauve_rasterfile(nom_sortie, &r);
   }
+  */
+
+  MPI_Finalize();
 
   return 0;
 }

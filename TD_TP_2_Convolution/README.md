@@ -65,3 +65,47 @@ Lignes/colonnes non traitées entre blocs, nécéssite une communication entre l
 Alternative : image origine à tous les ouvriers, peut-être moins efficace si l'image est grosse
 
 ## Question 6
+
+### Algo lecture de l'image
+
+Paramétres : tableau [z] contenant les taillles (h,w) de l'image
+
+```
+DEBUT
+	si rank == MAITRE alors
+		lecture du fichier
+		récupération des paramètres
+	fin si
+	// envoi des paramètres
+	MPI_Bcast(params,2,MPI_INT,MAITRE,MPI8COMM_WORLD)
+FIN
+```
+
+### Algo maître
+
+  * Calcul de h_loc
+  * Allocation dynamique de chaque bloc local
+  * Test de l'allocation dynamique
+  * Envoi des blocs d'images aux processus (MPI_SCATTER()) (se charge de répartir statiquement la charge de travail entre les processus)
+
+```h_loc = h_loc + (1 si 0<rank<=p-2, 0 sinon) + (1 si 1<rank<=p-1, 0 sinon)```
+
+#### Allocation de la mémoire
+
+Données : r,h,w,rank  
+Résultat : h_loc : hauteur d'un bloc
+		   ima : pointeur vers le début de l'image
+
+```
+DEBUT
+	h_loc = h/n_proc + (rank > 0 ? 1:0) + (rank < n_proc-1 ? 1:0)
+	si rank == Maitre alors
+		ima = r.data;
+	sinon
+		ima = malloc(h_loc*w*sizeof(unsigned char))
+		// test allocation
+	finsi
+
+	MPI_Scatter(ima,w*h/n_proc,MPI_CHAR,ima + (rank>0?w:0,...))
+FIN
+```
