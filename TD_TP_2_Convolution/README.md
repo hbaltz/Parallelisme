@@ -8,6 +8,8 @@ gcc -o convol convol.c -lm
 
 TODO insérer imade départ et résultat
 
+Test sur ordinateur
+
 ```
 ./convol femme10.ras 0 100
 Temps total de calcul : 0.2132 seconde(s) 
@@ -99,13 +101,22 @@ Résultat : h_loc : hauteur d'un bloc
 ```
 DEBUT
 	h_loc = h/n_proc + (rank > 0 ? 1:0) + (rank < n_proc-1 ? 1:0)
-	si rank == Maitre alors
-		ima = r.data;
-	sinon
+	// PAs bon : si rank == Maitre alors
+	//	ima = r.data;
+	//sinon
 		ima = malloc(h_loc*w*sizeof(unsigned char))
 		// test allocation
-	finsi
+	//finsi
 
 	MPI_Scatter(ima,w*h/n_proc,MPI_CHAR,ima + (rank>0?w:0,...))
 FIN
+```
+
+Sur ordo 
+```
+mpirun -np 4 ./convol_paralle Sukhothai_4080x6132.ras 0 10
+Rang 1 | Temps total de calcul : 4.85763 sec
+Rang 2 | Temps total de calcul : 5.04199 sec
+Rang 0 | Temps total de calcul : 5.04671 sec
+Rang 3 | Temps total de calcul : 5.04194 sec
 ```
