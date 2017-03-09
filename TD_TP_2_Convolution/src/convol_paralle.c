@@ -389,18 +389,17 @@ int main(int argc, char *argv[]) {
   MPI_Status status_recp_der, status_recp_pre;
 
   for(i=0 ; i < nbiter ; i++){
-    if(rank > 0){ // Envoie premiere ligne, reception derniere ligne
+    if(rank > 0){ // Envoie reception premiere ligne
       MPI_Send(ima + params[1],params[1],MPI_CHAR,rank-1,TAG_LIN,MPI_COMM_WORLD);
-      MPI_Recv(ima, params[1],MPI_CHAR,rank-1,TAG_LIN,MPI_COMM_WORLD,&status_recp_der);
+      MPI_Recv(ima, params[1],MPI_CHAR,rank-1,TAG_LIN,MPI_COMM_WORLD,&status_recp_pre);
     }
 
-    if(rank < p-1){ //Reception premiere ligne, envoie derniere ligne
-      MPI_Recv(ima + params[1]*(h_loc -1),params[1],MPI_CHAR,rank+1,TAG_LIN,MPI_COMM_WORLD,&status_recp_pre);
+    if(rank < p-1){ //Envoie reception derniere ligne
+      MPI_Recv(ima + params[1]*(h_loc -1),params[1],MPI_CHAR,rank+1,TAG_LIN,MPI_COMM_WORLD,&status_recp_der);
       MPI_Send(ima + params[1]*(h_loc -2),params[1],MPI_CHAR,rank+1,TAG_LIN,MPI_COMM_WORLD);
     }
 
     convolution(filtre, ima, h_loc, params[1]);
-    fprintf( stderr, "Rang %d, nbiter=%d finie\n", rank, nbiter);
   }
 
   MPI_Gather( 
