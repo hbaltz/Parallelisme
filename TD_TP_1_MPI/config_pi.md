@@ -59,15 +59,6 @@ Modifier /etc/hosts voir [hosts](hosts)
 172.31.57.64    piensg005
 ```
 
-/etc/hostname
-
-```
-piensg017
-piensg011
-piensg015
-piensg005
-```
-
 Et /home/pi/pifile
 
 pifile017 
