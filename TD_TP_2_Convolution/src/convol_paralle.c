@@ -356,20 +356,17 @@ int main(int argc, char *argv[]) {
   h_p = params[0]/p;
   h_loc = h_p + (rank > 0 ? 1:0) + (rank < p-1 ? 1:0);
 
-  if(rank == MAITRE){
-    ima = r.data;
-  }else{
-    //fprintf( stderr, "H loc : %d \n",h_loc);
+ 
+  //fprintf( stderr, "H loc : %d \n",h_loc);
 
-    // Allocation dynamique de chaque bloc local
-    ima = malloc(h_loc*params[1]*sizeof(unsigned char));
-    // Test de l'allocation dynamique
-    if( ima == NULL) {
-      fprintf( stderr, "Erreur allocation mémoire du tableau \n");
-      return 0;
-    }
+  // Allocation dynamique de chaque bloc local
+  ima = malloc(h_loc*params[1]*sizeof(unsigned char));
+  // Test de l'allocation dynamique
+  if( ima == NULL) {
+    fprintf( stderr, "Erreur allocation mémoire du tableau \n");
+    return 0;
   }
-
+  
   // Envoi des blocs d'images aux processus
   MPI_Scatter(
     r.data, // sbuf
