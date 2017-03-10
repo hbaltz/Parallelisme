@@ -359,20 +359,24 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  // Allocation dynamique 
-  temp_debut = malloc(3*params[1]*sizeof(unsigned char));
-  // Test de l'allocation dynamique
-  if( temp_debut == NULL) {
-    fprintf( stderr, "Erreur allocation mémoire du tableau temporaire début \n");
-    return 0;
+  if(rank > 0){
+    // Allocation dynamique 
+    temp_debut = malloc(3*params[1]*sizeof(unsigned char));
+    // Test de l'allocation dynamique
+    if( temp_debut == NULL) {
+      fprintf( stderr, "Erreur allocation mémoire du tableau temporaire début \n");
+      return 0;
+    }
   }
 
-  // Allocation dynamique 
-  temp_fin = malloc(3*params[1]*sizeof(unsigned char));
-  // Test de l'allocation dynamique
-  if( temp_fin == NULL) {
-    fprintf( stderr, "Erreur allocation mémoire du tableau temporaire fin \n");
-    return 0;
+  if(rank < p-1){
+    // Allocation dynamique 
+    temp_fin = malloc(3*params[1]*sizeof(unsigned char));
+    // Test de l'allocation dynamique
+    if( temp_fin == NULL) {
+      fprintf( stderr, "Erreur allocation mémoire du tableau temporaire fin \n");
+      return 0;
+    }
   }
   
   // Envoi des blocs d'images aux processus
@@ -393,42 +397,42 @@ int main(int argc, char *argv[]) {
   // Preparation des variables temporaires
   for( i=0; i<2; i++){
     if(rank > 0){
-      memcpy( temp_debut + params[1]*i+1, ima+ params[1]*i, params[1]);
+      memcpy( temp_debut + params[1]*i+1, ima+ params[1]*(i+1), params[1]);
     }
 
     if(rank < p-1){
-      memcpy( temp_fin + params[1]*i, ima+ params[1]*(h_loc-(i+3)), params[1]);
+      memcpy( temp_fin + params[1]*i, ima+ params[1]*(h_loc-(i+2)), params[1]);
     }
   } 
 
   // La convolution a proprement parler 
-  MPI_Status status_recp_der, status_recp_pre;
-  MPI_Request req_pre, req_der;
+  MPI_Status status;
+  MPI_Request req;
 
   for(i=0 ; i < nbiter ; i++){
 
-    if(rank > 0){ // Envoyer la ligne 0 au processus precedent (rank-1)
-      MPI_Isend(ima + params[1],params[1],MPI_CHAR,rank-1,TAG_LIN,MPI_COMM_WORLD,&req_pre);
+    if(rank > 0){ // Envoyer la ligne 1 au processus precedent (rank-1)
+      MPI_Isend(ima + params[1] ,params[1],MPI_CHAR,rank-1,TAG_LIN,MPI_COMM_WORLD,&req);
     }
 
     if(rank < p-1){ // Envoyer la ligne h_loc-2 au processus suivant (rank+1)
-      MPI_Isend(ima + params[1]*(h_loc - 2),params[1],MPI_CHAR,rank+1,TAG_LIN,MPI_COMM_WORLD,&req_der);
+      MPI_Isend(ima + params[1]*(h_loc - 2),params[1],MPI_CHAR,rank+1,TAG_LIN,MPI_COMM_WORLD,&req);
     }
 
-    if(rank > 0){ // Recevoir la ligne 0  rank-1
-      MPI_Irecv(temp_debut, params[1],MPI_CHAR,rank-1,TAG_LIN,MPI_COMM_WORLD,&req_pre);
+    if(rank > 0){ // Recevoir la ligne 1 rank-1
+      MPI_Irecv(temp_debut, params[1],MPI_CHAR,rank-1,TAG_LIN,MPI_COMM_WORLD,&req);
     }
 
     if(rank < p-1){ // Recevoir la ligne h_loc-1 du processus rank+1
-      MPI_Irecv(temp_fin + params[1]*2,params[1],MPI_CHAR,rank+1,TAG_LIN,MPI_COMM_WORLD,&req_der);
+      MPI_Irecv(temp_fin + params[1]*2,params[1],MPI_CHAR,rank+1,TAG_LIN,MPI_COMM_WORLD,&req);
     }
 
     // Faire la convolution du bloc (qui va de ligne 1 à h_loc)
     convolution(filtre, ima + params[1], h_loc - 1, params[1]); 
 
-    if(rank > 0){
-      MPI_Wait(&req_pre,&status_recp_pre);
+    MPI_Wait(&req,&status);
 
+    if(rank > 0){
       // Faire la convolution de la ligne 1
       convolution(filtre,temp_debut,3,params[1]);
 
@@ -437,8 +441,6 @@ int main(int argc, char *argv[]) {
     }
 
     if(rank < p-1){
-      MPI_Wait(&req_der,&status_recp_der);
-
       // Faire la convolution de la derniere ligne
       convolution(filtre,temp_fin,3,params[1]);
 
