@@ -266,9 +266,10 @@ int main(int argc, char *argv[]) {
   y = ymin; 
   #pragma omp parallel
   {
-    #pragma omp for private(j,x,y,pima) schedule(dynamic)
-
     // Pour les valeur de schedule voir https://software.intel.com/en-us/articles/openmp-loop-scheduling
+    #pragma omp for private(j,x,y,pima) schedule(runtime)
+
+    
     for (i = 0; i < h; i++) {
       y = ymin + i * yinc;	
       pima = &ima[i*w];
