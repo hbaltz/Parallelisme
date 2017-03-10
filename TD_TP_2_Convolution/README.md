@@ -147,3 +147,5 @@ pour i allant de 0 à nbiter faire
 	* Faire la convolution de la dernière ligne
 fin pour
 ```
+
+TDO : schema, tableau + courbe performance
