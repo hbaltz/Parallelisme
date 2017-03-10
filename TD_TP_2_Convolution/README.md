@@ -112,11 +112,38 @@ DEBUT
 FIN
 ```
 
-Sur ordo 
+Sur ordi
 ```
 mpirun -np 4 ./convol_paralle Sukhothai_4080x6132.ras 0 10
 Rang 1 | Temps total de calcul : 4.85763 sec
 Rang 2 | Temps total de calcul : 5.04199 sec
 Rang 0 | Temps total de calcul : 5.04671 sec
 Rang 3 | Temps total de calcul : 5.04194 sec
+```
+
+## Question 7
+
+ * Communications bloquantes: les envois et les réceptions des lignes (manqauntes) sont réalisés par des fonctions bloquantes (MPI_send(), MPI_recv()) cad le processus reste bloqué tant qu'il n'a pas reçu toutes les données attendues ou qu'il n'a pas envoyé toutes les donnés
+
+ * Avec les communications non bloquantes (Améloioration) : on peut  ammener le calcul de  convolution de la grande partie de l'image locale en anttendant la réception des lignes manquantes
+
+```
+pour i allant de 0 à nbiter faire
+	si rank > 0 faire
+		* Envoyer la ligne 1 et 2 au processus précédent (rank-1)
+	finsi
+	si rank < p-1
+		* Envoyer la ligne h_loc-2 et h_loc-3 au processus suivant (rank+1)
+	finsi
+
+	* Faire la convolution du bloc (qui va de ligne 1 à h_loc)
+	si rank >0 faire
+		* Recevoir la ligne 0 et 1 du processeur rank-1
+	fin si
+	si rank < p-1
+		* Recevoir la ligne h_loc-1 et h_loc-2 du processus rank+1
+	finsi
+	* Faire la convolution de la ligne 1
+	* Faire la convolution de la dernière ligne
+fin pour
 ```
