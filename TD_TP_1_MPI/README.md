@@ -29,7 +29,7 @@ gcc -o mandel mandel.c -lm
 Temps total de calcul : 5.49344 sec
 ```
 
-![Resultat code original](mandel_base.jpg)
+![Resultat code original](img/mandel_base.jpg)
 
 #### 2.2 && 2.3
 ```
@@ -141,9 +141,35 @@ Tests effectués en faisant varier le nombre de processus à l'aide commande sui
 mpiexec -n 4 ./mandel_statique
 ```
 
-TODO : courbes + tableaux
-
 ###### 4.3 & 4.4
+
+Tests réalisés sur 4 Raspberry Pi  2 Pi2  et 2 Pi3  
+
+![courbe performance statique](graphique/courbe_performance_statique.jpg)
+
+Cette courbe nous montre qu'en méthode statique lorsque l'on augmente le nombre de processus dans un premier temps le temps d'exécution s'améliore mais qu'à partir de 8 processus tournant en parallèle le temps d'exécution globale recommence à augmenter. Pour comprendre ce phénomène regardons les courbes d'évolution du temps d’exécution pour les différents processus
+
+* Pour n=2 processus
+
+![statique n2](graphique/statique_n2.jpg)
+
+Pour deux processus on remarque que la charge de travail est la même pour les deux processus, nous pouvons nous y attendre il traite chacun la moitié de l'image présentant les même difficultés de traitement
+
+* Pour n=8 processus
+
+![statique n8](graphique/statique_n8.jpg)
+
+On remarque sur cette courbe que les processus qui s'occupent du milieu de l’image mettent plus de temps que ceux s'occupant des bords de l'image.
+
+*Pour n=32 processus
+
+![statique n32](graphique/statique_n32.jpg)
+
+On confirme ici que le centre de l'image est plus long a traité que les extrémités de l'image.
+
+En statique comme nous attendons que chaque processus est finie de traités sa partie de l'image, le temps d’exécution raugmente lorsque l'on augmente le nombre de processus
+
+Voir le tableur ods en annexe 1 pour plus de détails
 
 ### Dynamique
 
@@ -196,13 +222,42 @@ Tests effectués en faisant varier le nombre de processus à l'aide commande sui
 mpiexec -n 4 ./mandel_dynamique
 ```
 
-TODO : courbes + tableaux
+###### 4.3 & 4.4
+
+Tests réalisés sur 4 Raspberry Pi  2 Pi2  et 2 Pi3 
+
+![courbe performance dynamique](graphique/courbe_performance_dynamique.jpg)
+
+On remarque que pour deux processeurs le temps d’exécution est semblable à celui sans parallélisation en effet en dynamique le master ne travail pas donc lorsque deux processeurs tourne il n'y en a qu'un qui travail. On remarque que jusqu'à 16 processeurs il y a une amélioration puis que le temps raugmente à partir de 32 secondes.
+
+* Pour n=4 processus
+
+![statique n4](graphique/dynamique_4.jpg)
+
+On remarque une amélioration du temps de traitement 
+
+* Pour n=8 processus
+
+![statique n8](graphique/dynamique_8.jpg)
+
+On remarque une amélioration que la répartition de parties dynamiquement est efficace
+
+* Pour n=32 processus
+
+![statique n32](graphique/dynamique_32.jpg)
+
+On y vois la limite, lorsque l'iamge est découpé en trop de petite parties la communication pour redistribuer les blocs non traités fait perdre trop de temps
+
+
+Voir le tableur ods en annexe 1 pour plus de détails
 
 ### Comparaison statique et dynamique
 
 ##### 4.5
 
-TODO : courbes + tableaux
+![courbe performance comparaison statique dynamiquee](graphique/courbe_performance_compa_statique_dyn.jpg)
+
+Dans notre cas le centre de l'image était plus longue à traiter que les extrémités de l'image. Il est donc normal que la répartition dynamique soit plus efficace que la répartition statique.
 
 ## Amélioration
 

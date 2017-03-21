@@ -148,4 +148,8 @@ pour i allant de 0 à nbiter faire
 fin pour
 ```
 
-TDO : schema, tableau + courbe performance
+![tab comparaison temp](graphique/tab_comparaison_temp.jpg)
+
+On remarque pour chaque filtre une amélioration du temps d'exécution jusqu'à 8 processeurs (le temps d'exécution = le temps d'exécution sans parllèlisation / le nombre de processus), avec plus de proceesseurs le temps d'execution raugmente.
+
+Voir le tableur ods en annexe 2 pour plus de détails
